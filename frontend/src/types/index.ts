@@ -14,8 +14,6 @@ export enum ServerStatus {
     ONLINE = 'ONLINE',
     OFFLINE = 'OFFLINE',
     MAINTENANCE = 'MAINTENANCE',
-    WARNING = 'WARNING',
-    ERROR = 'ERROR'
 }
 
 // Metric types

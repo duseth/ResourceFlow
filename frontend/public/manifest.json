@@ -1,6 +1,6 @@
 {
-  "short_name": "Monitor",
-  "name": "Server Monitoring System",
+  "short_name": "Resource Flow",
+  "name": "Resource Flow - Server Monitoring System",
   "icons": [
     {
       "src": "favicon.ico",
@@ -26,6 +26,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#1a1a1a",
-  "background_color": "#121212"
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
 }

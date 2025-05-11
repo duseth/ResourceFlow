@@ -13,4 +13,10 @@ database:
 ssh:
   user: "monitoring"
   password: "your-secure-password"
-  timeout: 5 
+  timeout: 5
+
+redis:
+  host: "localhost"
+  port: 6379
+  password: ""
+  db: 0 

@@ -1,147 +1,104 @@
 import React from 'react';
-import {
-    List,
-    ListItem,
-    ListItemText,
-    ListItemIcon,
-    Chip,
-    Typography,
-    Box,
-    Button,
-} from '@mui/material';
-import {
-    Memory as MemoryIcon,
-    Storage as StorageIcon,
-    Speed as SpeedIcon,
-    Router as RouterIcon,
-} from '@mui/icons-material';
-import { OptimizationRecommendation } from '../../types';
+import {Box, List, ListItem, ListItemIcon, ListItemText, Typography} from '@mui/material';
+import {Optimization, OptimizationStatus, OptimizationType} from '../../store/types';
+import SpeedIcon from '@mui/icons-material/Speed';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
+import PendingIcon from '@mui/icons-material/Pending';
+import BlockIcon from '@mui/icons-material/Block';
 
 interface OptimizationsListProps {
-    recommendations: OptimizationRecommendation[];
+    optimizations: Optimization[];
 }
 
-const getTypeIcon = (type: OptimizationRecommendation['type']) => {
-    switch (type) {
-        case 'memory':
-            return <MemoryIcon />;
-        case 'disk':
-            return <StorageIcon />;
-        case 'cpu':
-            return <SpeedIcon />;
-        case 'network':
-            return <RouterIcon />;
-        default:
-            return <SpeedIcon />;
-    }
-};
-
-const getPriorityColor = (priority: OptimizationRecommendation['priority']) => {
-    switch (priority) {
-        case 'high':
-            return 'error';
-        case 'medium':
-            return 'warning';
-        case 'low':
-            return 'info';
-        default:
-            return 'default';
-    }
-};
-
-const getStatusColor = (status: OptimizationRecommendation['status']) => {
+const getStatusIcon = (status: OptimizationStatus) => {
     switch (status) {
-        case 'pending':
-            return 'warning';
-        case 'applied':
+        case OptimizationStatus.PENDING:
+            return <PendingIcon color="info" />;
+        case OptimizationStatus.APPLIED:
+            return <CheckCircleIcon color="success" />;
+        case OptimizationStatus.REJECTED:
+            return <BlockIcon color="error" />;
+        case OptimizationStatus.IN_PROGRESS:
+            return <SpeedIcon color="primary" />;
+        case OptimizationStatus.FAILED:
+            return <ErrorIcon color="error" />;
+        default:
+            return <PendingIcon />;
+    }
+};
+
+const getStatusColor = (status: OptimizationStatus) => {
+    switch (status) {
+        case OptimizationStatus.PENDING:
+            return 'info';
+        case OptimizationStatus.APPLIED:
             return 'success';
-        case 'rejected':
+        case OptimizationStatus.REJECTED:
+            return 'error';
+        case OptimizationStatus.IN_PROGRESS:
+            return 'primary';
+        case OptimizationStatus.FAILED:
             return 'error';
         default:
-            return 'default';
+            return 'info';
+    }
+};
+
+const getOptimizationTypeLabel = (type: OptimizationType) => {
+    switch (type) {
+        case OptimizationType.PERFORMANCE:
+            return 'Performance';
+        case OptimizationType.SCALING:
+            return 'Scaling';
+        case OptimizationType.COST:
+            return 'Cost';
+        default:
+            return type;
     }
 };
 
 const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
+    return new Date(dateString).toLocaleString();
 };
 
-const OptimizationsList: React.FC<OptimizationsListProps> = ({ recommendations }) => {
-    const sortedRecommendations = [...recommendations].sort((a, b) => {
-        // Сортировка по приоритету
-        const priorityOrder = { high: 0, medium: 1, low: 2 };
-        const priorityDiff =
-            priorityOrder[a.priority as keyof typeof priorityOrder] -
-            priorityOrder[b.priority as keyof typeof priorityOrder];
-        if (priorityDiff !== 0) return priorityDiff;
-
-        // Если приоритеты равны, сортируем по дате создания
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-
+const OptimizationsList: React.FC<OptimizationsListProps> = ({ optimizations }) => {
     return (
         <List>
-            {sortedRecommendations.length === 0 ? (
-                <ListItem>
-                    <ListItemText primary="Нет рекомендаций по оптимизации" />
-                </ListItem>
-            ) : (
-                sortedRecommendations.map((recommendation) => (
-                    <ListItem
-                        key={recommendation.id}
-                        divider
-                        secondaryAction={
-                            recommendation.status === 'pending' && (
-                                <Button variant="contained" color="primary" size="small">
-                                    Применить
-                                </Button>
-                            )
+            {optimizations.map((optimization) => (
+                <ListItem key={optimization.id}>
+                    <ListItemIcon>{getStatusIcon(optimization.status)}</ListItemIcon>
+                    <ListItemText
+                        primary={optimization.description}
+                        secondary={
+                            <Box component="span">
+                                <Typography
+                                    component="span"
+                                    variant="body2"
+                                    color={getStatusColor(optimization.status)}
+                                >
+                                    Status: {optimization.status.replace('_', ' ')}
+                                </Typography>
+                                <Box component="br" />
+                                <Typography component="span" variant="body2">
+                                    Type: {getOptimizationTypeLabel(optimization.type)}
+                                </Typography>
+                                <Box component="br" />
+                                <Typography component="span" variant="body2">
+                                    Impact: {optimization.impact}
+                                </Typography>
+                                <Box component="br" />
+                                <Typography component="span" variant="body2">
+                                    Created: {formatDate(optimization.createdAt)}
+                                    {optimization.appliedAt && ` | Applied: ${formatDate(optimization.appliedAt)}`}
+                                </Typography>
+                            </Box>
                         }
-                    >
-                        <ListItemIcon>{getTypeIcon(recommendation.type)}</ListItemIcon>
-                        <ListItemText
-                            primary={
-                                <Box display="flex" alignItems="center" gap={1}>
-                                    <Typography variant="body1">
-                                        {recommendation.description}
-                                    </Typography>
-                                    <Chip
-                                        label={recommendation.priority}
-                                        color={getPriorityColor(recommendation.priority)}
-                                        size="small"
-                                    />
-                                    <Chip
-                                        label={recommendation.status}
-                                        color={getStatusColor(recommendation.status)}
-                                        size="small"
-                                    />
-                                </Box>
-                            }
-                            secondary={
-                                <>
-                                    <Typography variant="body2" color="textSecondary">
-                                        Сервер: {recommendation.serverId}
-                                    </Typography>
-                                    <Typography variant="body2" color="textSecondary">
-                                        Влияние: {recommendation.impact}
-                                    </Typography>
-                                    <Typography variant="body2" color="textSecondary">
-                                        Создано: {formatDate(recommendation.createdAt)}
-                                    </Typography>
-                                    {recommendation.appliedAt && (
-                                        <Typography variant="body2" color="textSecondary">
-                                            Применено: {formatDate(recommendation.appliedAt)}
-                                        </Typography>
-                                    )}
-                                </>
-                            }
-                        />
-                    </ListItem>
-                ))
-            )}
+                    />
+                </ListItem>
+            ))}
         </List>
     );
 };
 
-export default OptimizationsList; 
+export default OptimizationsList;

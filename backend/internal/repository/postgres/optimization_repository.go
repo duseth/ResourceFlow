@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/duseth/ResourceFlow/internal/domain/models"
 	"github.com/duseth/ResourceFlow/internal/domain/repository"
@@ -46,11 +45,11 @@ func (r *OptimizationRepository) CreateRecommendation(ctx context.Context, rec *
 func (r *OptimizationRepository) UpdateStatus(ctx context.Context, id string, status string) error {
 	query := `
 		UPDATE optimization_recommendations
-		SET status = $1, applied_at = $2
-		WHERE id = $3
+		SET status = $1, applied_at = CASE WHEN $1 = 'applied' THEN NOW() ELSE applied_at END
+		WHERE id = $2
 	`
 
-	result, err := r.db.ExecContext(ctx, query, status, time.Now(), id)
+	result, err := r.db.ExecContext(ctx, query, status, id)
 	if err != nil {
 		return fmt.Errorf("failed to update optimization status: %v", err)
 	}
@@ -145,4 +144,24 @@ func (r *OptimizationRepository) GetByServer(ctx context.Context, serverID strin
 	}
 
 	return recommendations, nil
+}
+
+func (r *OptimizationRepository) Delete(ctx context.Context, id string) error {
+	query := `DELETE FROM optimization_recommendations WHERE id = $1`
+
+	result, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete optimization recommendation: %v", err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %v", err)
+	}
+
+	if rows == 0 {
+		return repository.ErrNotFound
+	}
+
+	return nil
 }

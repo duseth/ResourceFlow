@@ -1,22 +1,14 @@
-import { createCanvas } from 'canvas';
-import { writeFileSync } from 'fs';
-import { join } from 'path';
+import { Canvas, createCanvas } from 'canvas';
+import * as fs from 'fs';
+import * as path from 'path';
 
-const sizes = {
-    favicon: [16, 32, 48],
-    logo: [192, 512],
-    maskable: [512]
-};
-
-const generateIcon = (size: number, text: string = 'A'): Canvas => {
+const generateIcon = (size: number, text = 'A'): Canvas => {
     const canvas = createCanvas(size, size);
     const ctx = canvas.getContext('2d');
     
-    // Фон
     ctx.fillStyle = '#282c34';
     ctx.fillRect(0, 0, size, size);
     
-    // Текст
     ctx.fillStyle = '#61dafb';
     ctx.font = `bold ${size * 0.6}px Arial`;
     ctx.textAlign = 'center';
@@ -26,25 +18,39 @@ const generateIcon = (size: number, text: string = 'A'): Canvas => {
     return canvas;
 };
 
-// Генерация иконок
-const outputDir = join(__dirname);
+const sizes = {
+    favicon: [16, 32, 48],
+    logo: [192, 512],
+    maskable: [512]
+};
 
-// Favicon
-sizes.favicon.forEach(size => {
-    const canvas = generateIcon(size);
-    writeFileSync(join(outputDir, `favicon-${size}.png`), canvas.toBuffer());
-});
+const outputDir = path.join(__dirname);
 
-// Logo
-sizes.logo.forEach(size => {
-    const canvas = generateIcon(size);
-    writeFileSync(join(outputDir, `logo${size}.png`), canvas.toBuffer());
-});
+try {
+    // Favicon
+    sizes.favicon.forEach(size => {
+        const canvas = generateIcon(size);
+        fs.writeFileSync(path.join(outputDir, `favicon-${size}.png`), canvas.toBuffer());
+    });
 
-// Maskable
-const maskableCanvas = generateIcon(512);
-writeFileSync(join(outputDir, 'maskable.png'), maskableCanvas.toBuffer());
+    // Logo
+    sizes.logo.forEach(size => {
+        const canvas = generateIcon(size);
+        fs.writeFileSync(path.join(outputDir, `logo${size}.png`), canvas.toBuffer());
+    });
+
+    // Maskable
+    const maskableCanvas = generateIcon(512);
+    fs.writeFileSync(path.join(outputDir, 'maskable.png'), maskableCanvas.toBuffer());
+
+    console.log('Icons generated successfully');
+} catch (error) {
+    console.error('Error generating icons:', error);
+}
 
 export const icons = {
-  // Здесь будут определения иконок
+    favicon: '/favicon.ico',
+    logo192: '/logo192.png',
+    logo512: '/logo512.png',
+    maskable: '/maskable.png'
 }; 

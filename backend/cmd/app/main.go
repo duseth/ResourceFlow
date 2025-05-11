@@ -55,14 +55,14 @@ func main() {
 	alertService := service.NewAlertService(alertRepo)
 	optimizationService := service.NewOptimizationService(optimizationRepo, metricRepo)
 
-	// Инициализация HTTP-хендлеров
-	handler := api.NewHandler(monitoringService, alertService, optimizationService)
-	router := handler.Router()
+	// Инициализация роутера
+	router := api.NewRouter(monitoringService, alertService, optimizationService)
+	handler := router.Setup()
 
 	// Создание HTTP-сервера
 	srv := &http.Server{
 		Addr:    cfg.Server.Address(),
-		Handler: router,
+		Handler: handler,
 	}
 
 	// Запуск сервера в горутине

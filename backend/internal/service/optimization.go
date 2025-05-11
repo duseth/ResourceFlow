@@ -146,3 +146,57 @@ func (s *OptimizationService) analyzeMemoryMetrics(metrics []*models.Metric) *mo
 
 	return nil
 }
+
+// GetServerRecommendations возвращает список рекомендаций для сервера
+func (s *OptimizationService) GetServerRecommendations(ctx context.Context, serverID string) ([]*models.OptimizationRecommendation, error) {
+	return s.optimizationRepo.GetByServer(ctx, serverID)
+}
+
+// CreateRecommendation создает новую рекомендацию
+func (s *OptimizationService) CreateRecommendation(ctx context.Context, rec *models.OptimizationRecommendation) error {
+	rec.ID = uuid.New().String()
+	rec.CreatedAt = time.Now()
+	rec.Status = models.OptimizationStatusPending
+	return s.optimizationRepo.CreateRecommendation(ctx, rec)
+}
+
+// DeleteRecommendation удаляет рекомендацию
+func (s *OptimizationService) DeleteRecommendation(ctx context.Context, id string) error {
+	// Проверяем существование рекомендации перед удалением
+	recs, err := s.optimizationRepo.GetByServer(ctx, id)
+	if err != nil {
+		return err
+	}
+	if len(recs) == 0 {
+		return repository.ErrNotFound
+	}
+
+	return s.optimizationRepo.Delete(ctx, id)
+}
+
+// UpdateStatus обновляет статус рекомендации по оптимизации
+func (s *OptimizationService) UpdateStatus(ctx context.Context, id string, status string) error {
+	// Проверяем существование рекомендации
+	recs, err := s.optimizationRepo.GetByServer(ctx, id)
+	if err != nil {
+		return err
+	}
+	if len(recs) == 0 {
+		return repository.ErrNotFound
+	}
+
+	// Проверяем валидность статуса
+	validStatuses := map[string]bool{
+		models.OptimizationStatusPending:    true,
+		models.OptimizationStatusApplied:    true,
+		models.OptimizationStatusRejected:   true,
+		models.OptimizationStatusInProgress: true,
+		models.OptimizationStatusFailed:     true,
+	}
+	if !validStatuses[status] {
+		return fmt.Errorf("invalid status: %s", status)
+	}
+
+	// Обновляем статус
+	return s.optimizationRepo.UpdateStatus(ctx, id, status)
+}

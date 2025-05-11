@@ -47,10 +47,12 @@ CREATE TABLE IF NOT EXISTS optimization_recommendations (
     server_id UUID NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
     type VARCHAR(50) NOT NULL,
     description TEXT NOT NULL,
-    impact TEXT NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    applied_at TIMESTAMP
+    impact TEXT,
+    status VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    applied_at TIMESTAMP WITH TIME ZONE,
+    CONSTRAINT optimization_recommendations_status_check 
+        CHECK (status IN ('pending', 'applied', 'rejected', 'in_progress', 'failed'))
 );
 
 -- Создание индексов
@@ -66,10 +68,16 @@ CREATE INDEX idx_optimizations_status ON optimization_recommendations(status);
 CREATE INDEX idx_optimizations_created_at ON optimization_recommendations(created_at);
 
 -- Добавляем расширение для TimescaleDB
-CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
+CREATE EXTENSION IF NOT EXISTS timescaledb;
 
--- Создаем гипертаблицу для метрик
+-- Создаем гипертаблицу для метрик после создания всех таблиц
 SELECT create_hypertable('metrics', 'timestamp', 
-    chunk_time_interval => INTERVAL '1 day',
-    if_not_exists => TRUE
-); 
+    chunk_time_interval => interval '1 day',
+    if_not_exists => true,
+    migrate_data => true
+);
+
+CREATE INDEX IF NOT EXISTS idx_optimization_recommendations_server_id 
+    ON optimization_recommendations(server_id);
+CREATE INDEX IF NOT EXISTS idx_optimization_recommendations_status 
+    ON optimization_recommendations(status); 

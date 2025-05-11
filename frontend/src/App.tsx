@@ -1,26 +1,24 @@
 import React from 'react';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import { Provider } from 'react-redux';
-import { BrowserRouter } from 'react-router-dom';
-import { theme } from './theme';
-import { store } from './store';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
-import Routes from './routes';
+import Dashboard from './pages/Dashboard';
+import Servers from './pages/Servers';
+import Alerts from './pages/Alerts';
+import Optimizations from './pages/Optimizations';
 
 const App: React.FC = () => {
-    return (
-        <Provider store={store}>
-            <ThemeProvider theme={theme}>
-                <CssBaseline />
-                <BrowserRouter>
-                    <Layout>
-                        <Routes />
-                    </Layout>
-                </BrowserRouter>
-            </ThemeProvider>
-        </Provider>
-    );
+  return (
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/servers" element={<Servers />} />
+          <Route path="/alerts" element={<Alerts />} />
+          <Route path="/optimizations" element={<Optimizations />} />
+        </Routes>
+      </Layout>
+    </Router>
+  );
 };
 
 export default App; 

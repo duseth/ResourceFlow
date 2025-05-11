@@ -50,4 +50,5 @@ type OptimizationRepository interface {
 	UpdateStatus(ctx context.Context, id string, status string) error
 	GetPending(ctx context.Context) ([]*models.OptimizationRecommendation, error)
 	GetByServer(ctx context.Context, serverID string) ([]*models.OptimizationRecommendation, error)
+	Delete(ctx context.Context, id string) error
 }
